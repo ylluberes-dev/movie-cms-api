@@ -8,7 +8,8 @@ package com.ylluberes.moviestore.controller;
 import com.ylluberes.moviestore.controller.request.AddOrUpdateMovieRequest;
 import com.ylluberes.moviestore.controller.request.FindMovieRequest;
 import com.ylluberes.moviestore.controller.request.PatchRequest;
-import com.ylluberes.moviestore.controller.response.OnMoviesResponse;
+import com.ylluberes.moviestore.controller.response.MovieResponse;
+import com.ylluberes.moviestore.controller.response.MovieSearchResponse;
 import com.ylluberes.moviestore.domain.Movie;
 import com.ylluberes.moviestore.exceptions.MovieNotFoundException;
 import com.ylluberes.moviestore.service.MovieService;
@@ -30,9 +31,8 @@ public class MovieController {
      * @param request movie body payload
      */
     @PostMapping()
-    public ResponseEntity<Movie> register(@RequestBody @Valid final AddOrUpdateMovieRequest request) {
-        return new ResponseEntity<>(movieService.save(request),
-                                    HttpStatus.CREATED);
+    public ResponseEntity<MovieResponse> register(@RequestBody @Valid final AddOrUpdateMovieRequest request) {
+        return new ResponseEntity<>(movieService.save(request), HttpStatus.CREATED);
     }
 
     /**
@@ -41,7 +41,7 @@ public class MovieController {
      * @return Updated Movie object
      */
     @PutMapping("/{movieId}")
-    public ResponseEntity<Movie> update(@PathVariable final int movieId,
+    public ResponseEntity<MovieResponse> update(@PathVariable final int movieId,
                                         @RequestBody @Valid final AddOrUpdateMovieRequest request) {
         try {
             return new ResponseEntity<>(movieService.update(movieId,
@@ -58,9 +58,8 @@ public class MovieController {
      * @return Updated Movie object
      */
     @PatchMapping("/{movieId}")
-    public ResponseEntity<Movie> patch(@PathVariable final int movieId,
+    public ResponseEntity<MovieResponse> patch(@PathVariable final int movieId,
                                        @RequestBody @Valid  final PatchRequest request) {
-        System.out.println("");
         try {
             return new ResponseEntity<>(movieService.update(movieId,
                                                             request),
@@ -93,17 +92,17 @@ public class MovieController {
      * @return OnMovieResponse Object representing the output of paginated movies
      */
     @GetMapping()
-    public ResponseEntity<OnMoviesResponse> getMovies(@RequestParam(required = false, defaultValue = "12") final int size,
-                                                      @RequestParam(required = false, defaultValue = "0") final int page,
-                                                      @RequestParam(required = false,defaultValue = "false") final boolean unavailable,
-                                                      @RequestParam(required = false) final String title,
-                                                      @RequestParam(required = false, defaultValue = "title,asc") final String sort) {
+    public ResponseEntity<MovieSearchResponse> getMovies(@RequestParam(required = false, defaultValue = "12") final int size,
+                                                         @RequestParam(required = false, defaultValue = "0") final int page,
+                                                         @RequestParam(required = false,defaultValue = "false") final boolean unavailable,
+                                                         @RequestParam(required = false) final String title,
+                                                         @RequestParam(required = false, defaultValue = "title,asc") final String sort) {
 
 
         final Page<Movie> moviePage =
                movieService.getMovies(new FindMovieRequest(size, page, unavailable, title, sort));
 
-        final OnMoviesResponse response = new OnMoviesResponse();
+        final MovieSearchResponse response = new MovieSearchResponse();
         response.setContent(moviePage.getContent());
         response.setNumber(moviePage.getNumber());
         response.setSize(moviePage.getSize());

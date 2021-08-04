@@ -1,5 +1,4 @@
 /**
- *
  * @author Yasser Lluberes
  * @version 1.0
  */
@@ -7,10 +6,13 @@ package com.ylluberes.moviestore.controller.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
+
 import javax.validation.constraints.Min;
 
 @AllArgsConstructor
 @Getter
+@Setter
 public class PatchRequest {
 
     private final String title;
@@ -21,5 +23,5 @@ public class PatchRequest {
     private final Double rentalPrice;
     @Min(value = 0)
     private final Double salePrice;
-    private final Boolean available;
+    private Boolean available;
 }

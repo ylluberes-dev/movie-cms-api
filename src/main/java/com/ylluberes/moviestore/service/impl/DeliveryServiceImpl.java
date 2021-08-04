@@ -17,22 +17,22 @@ import com.ylluberes.moviestore.domain.type.ActivityDefinition;
 import com.ylluberes.moviestore.exceptions.MovieNotAvailableException;
 import com.ylluberes.moviestore.exceptions.MovieNotFoundException;
 import com.ylluberes.moviestore.service.DeliveryService;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDate;
 import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 public class DeliveryServiceImpl implements DeliveryService {
 
-    @Autowired
-    private SaleRepository saleRepository;
+    private final SaleRepository saleRepository;
 
-    @Autowired
-    private RentalsRepository rentalsRepository;
+    private final RentalsRepository rentalsRepository;
 
-    @Autowired
-    private MovieRepository movieRepository;
+    private final MovieRepository movieRepository;
 
     /**
      * @param request  request action made by the customer.
@@ -40,9 +40,9 @@ public class DeliveryServiceImpl implements DeliveryService {
      * @return OnActionableResponse
      * @throws MovieNotFoundException     when not found movie.
      * @throws MovieNotAvailableException when movie is not available.
-     *
-     * Factory method that create a sale or rent based on the dispatched
-     * activity
+     *                                    <p>
+     *                                    Factory method that create a sale or rent based on the dispatched
+     *                                    activity
      */
     @Override
     public OnActionableResponse onDeliverFactory(final ActionableRequest request,
@@ -76,9 +76,9 @@ public class DeliveryServiceImpl implements DeliveryService {
             }
             response.setCustomerEmail(actionable.getEmail());
             response.setPrice(activity == ActivityDefinition.RENT ?
-                                   actionable.getMovie().getRentalPrice()
-                                       : activity == ActivityDefinition.SALE ?
-                                                actionable.getMovie().getSalePrice() : 0);
+                    actionable.getMovie().getRentalPrice()
+                    : activity == ActivityDefinition.SALE ?
+                    actionable.getMovie().getSalePrice() : 0);
 
             response.setMovieId(actionable.getMovie().getMovieId());
         } else {

@@ -7,33 +7,41 @@ package com.ylluberes.moviestore.service.impl;
 import com.ylluberes.moviestore.controller.request.AddOrUpdateMovieRequest;
 import com.ylluberes.moviestore.controller.request.FindMovieRequest;
 import com.ylluberes.moviestore.controller.request.PatchRequest;
+import com.ylluberes.moviestore.controller.response.MovieResponse;
 import com.ylluberes.moviestore.dao.MovieRepository;
 import com.ylluberes.moviestore.domain.Movie;
 import com.ylluberes.moviestore.exceptions.MovieNotFoundException;
 import com.ylluberes.moviestore.service.MovieService;
-import com.ylluberes.moviestore.util.Mapper;
+import lombok.AllArgsConstructor;
+import org.modelmapper.Conditions;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
 import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 public class MovieServiceImpl implements MovieService {
 
-    @Autowired
-    private MovieRepository movieRepository;
+    private final MovieRepository movieRepository;
+
+    private final ModelMapper modelMapper;
 
     /**
      * @param request containing the details of the new movie
      * @return saved Movie object
      */
     @Override
-    public Movie save(final AddOrUpdateMovieRequest request) {
-        final Movie movie = Mapper.fromDto(request);
-        return movieRepository.save(movie);
+    public MovieResponse save(final AddOrUpdateMovieRequest request) {
+        request.setAvailable(request.getAvailable() == null ? true : request.getAvailable());
+        final Movie movie = modelMapper.map(request, Movie.class);
+        final Movie movieResponse = movieRepository.save(movie);
+        return modelMapper.map(movieResponse, MovieResponse.class);
     }
 
     /**
@@ -41,23 +49,24 @@ public class MovieServiceImpl implements MovieService {
      * @param request new movie details payload.
      * @return Updated Movie object
      * @throws MovieNotFoundException when movie not found.
-     * This method is called when PUT request is executed.
+     *                                This method is called when PUT request is executed.
      */
     @Override
-    public Movie update(final int movieId,
-                        final AddOrUpdateMovieRequest request) throws MovieNotFoundException {
+    public MovieResponse update(final int movieId,
+                                final AddOrUpdateMovieRequest request) throws MovieNotFoundException {
         final Optional<Movie> optionalMovie = movieRepository.findById(movieId);
         if (optionalMovie.isPresent()) {
-            final Movie movie = Mapper.fromDto(request);
+            request.setAvailable(request.getAvailable() == null ? true : request.getAvailable());
+            final Movie movie = modelMapper.map(request, Movie.class);
             movie.setMovieId(movieId);
-            return movieRepository.save(movie);
+            movieRepository.save(movie);
+            return modelMapper.map(movie, MovieResponse.class);
         } else {
             throw new MovieNotFoundException("There is no movie with id " + movieId);
         }
     }
 
     /**
-     *
      * @param movieId id the of the movie to update.
      * @param request new movie details payload.
      * @return Updated Movie object when movie not found.
@@ -65,12 +74,15 @@ public class MovieServiceImpl implements MovieService {
      * This method is called when PATCH request is executed.
      */
     @Override
-    public Movie update(final int movieId,
-                        final PatchRequest request) throws MovieNotFoundException {
+    public MovieResponse update(final int movieId,
+                                final PatchRequest request) throws MovieNotFoundException {
         final Optional<Movie> optionalMovie = movieRepository.findById(movieId);
         if (optionalMovie.isPresent()) {
-            final Movie movie = Mapper.fromDto(request, optionalMovie.get());
-            return movieRepository.save(movie);
+            final Movie movie = optionalMovie.get();
+            modelMapper.map(request,movie);
+            movie.setMovieId(movieId);
+            movieRepository.save(movie);
+            return modelMapper.map(movie, MovieResponse.class);
         } else {
             throw new MovieNotFoundException("There is no movie with id " + movieId);
         }
@@ -119,7 +131,7 @@ public class MovieServiceImpl implements MovieService {
             moviePage =
                     request.isUnavailable() ?
                             movieRepository.findAll(pageable) :
-                            movieRepository.findAllByAvailable(true,pageable);
+                            movieRepository.findAllByAvailable(true, pageable);
         }
         return moviePage;
     }
