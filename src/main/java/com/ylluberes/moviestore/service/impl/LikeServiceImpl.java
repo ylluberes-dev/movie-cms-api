@@ -18,7 +18,6 @@ import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -44,14 +43,13 @@ public class LikeServiceImpl implements LikeService {
                 .findById(request.getMovieId())
                 .orElseThrow(() -> new MovieNotFoundException("Movie not found"));
 
-        if (movie.getAvailable()) {
+        if (movie.isAvailable()) {
             if (likeRepository.existsLikesByEmailAndMovie(request.getCustomerEmail(), movie))
                 throw new MovieAlreadyLikedException("Movie is already liked by this customer");
 
             likeRepository.save(modelMapper.map(request, Likes.class));
             movie.updateLikes();
-            final OnLikeResponse response = modelMapper.map(movie, OnLikeResponse.class);
-            return response;
+            return modelMapper.map(movie, OnLikeResponse.class);
         } else {
             throw new MovieNotAvailableException("The movie with id " + request.getMovieId() + " is not available");
         }

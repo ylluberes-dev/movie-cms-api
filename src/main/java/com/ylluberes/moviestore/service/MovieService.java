@@ -15,9 +15,9 @@ import org.springframework.data.domain.Page;
 public interface MovieService {
 
     MovieResponse save (AddOrUpdateMovieRequest request);
-    MovieResponse update (int movieId,
+    MovieResponse updateMovie (int movieId,
                   AddOrUpdateMovieRequest request) throws MovieNotFoundException;
-    MovieResponse update (int movieId, PatchRequest request);
+    MovieResponse patch (int movieId, PatchRequest request);
     void delete (int movieId) throws MovieNotFoundException;
     Page<Movie> getMovies (FindMovieRequest request);
 

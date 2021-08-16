@@ -5,7 +5,7 @@
 package com.ylluberes.moviestore.service.impl;
 
 import com.ylluberes.moviestore.controller.request.ActionableRequest;
-import com.ylluberes.moviestore.controller.response.OnActionableResponse;
+import com.ylluberes.moviestore.controller.response.OnSaleOrRentResponse;
 import com.ylluberes.moviestore.dao.MovieRepository;
 import com.ylluberes.moviestore.dao.RentalsRepository;
 import com.ylluberes.moviestore.dao.SaleRepository;
@@ -18,11 +18,9 @@ import com.ylluberes.moviestore.exceptions.MovieNotAvailableException;
 import com.ylluberes.moviestore.exceptions.MovieNotFoundException;
 import com.ylluberes.moviestore.service.DeliveryService;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -33,6 +31,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final RentalsRepository rentalsRepository;
 
     private final MovieRepository movieRepository;
+
 
     /**
      * @param request  request action made by the customer.
@@ -45,45 +44,40 @@ public class DeliveryServiceImpl implements DeliveryService {
      *                                    activity
      */
     @Override
-    public OnActionableResponse onDeliverFactory(final ActionableRequest request,
-                                                 final ActivityDefinition activity) throws MovieNotFoundException,
-            MovieNotAvailableException {
-        final OnActionableResponse response = new OnActionableResponse();
-        Actionable actionable;
-        final Optional<Movie> optionalMovie =
-                movieRepository.findById(request.getMovieId());
+    public OnSaleOrRentResponse onDeliverFactory(final ActionableRequest request,
+                                                 final ActivityDefinition activity) throws MovieNotFoundException, MovieNotAvailableException {
+        Actionable actionable = null;
+        final Movie movie =
+                movieRepository.findById(request.getMovieId())
+                        .orElseThrow(() -> new MovieNotFoundException("Movie does not exists"));
 
-        if (optionalMovie.isPresent()) {
-            final Movie movieTarget = optionalMovie.get();
-            if (movieTarget.getAvailable() && movieTarget.getStock() > 0) {
-                switch (activity) {
-                    case RENT:
-                        actionable = new Rental();
-                        actionable = setActionable(movieTarget, request.getCustomerEmail(), actionable);
-                        rentalsRepository.save((Rental) actionable);
-                        break;
-                    case SALE:
-                        actionable = new Sale();
-                        actionable = setActionable(movieTarget, request.getCustomerEmail(), actionable);
-                        saleRepository.save((Sale) actionable);
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Unknown activity");
-                }
-                movieTarget.updateStock(movieRepository);
-            } else {
-                throw new MovieNotAvailableException("The movie with id " + request.getMovieId() + " is not available");
-            }
-            response.setCustomerEmail(actionable.getEmail());
-            response.setPrice(activity == ActivityDefinition.RENT ?
-                    actionable.getMovie().getRentalPrice()
-                    : activity == ActivityDefinition.SALE ?
-                    actionable.getMovie().getSalePrice() : 0);
+        if (movie.isAvailable() && movie.getStock() > 0)
+            throw new MovieNotAvailableException("The movie is not available");
 
-            response.setMovieId(actionable.getMovie().getMovieId());
-        } else {
-            throw new MovieNotFoundException("There is no movie with id " + request.getMovieId());
+        final OnSaleOrRentResponse response = new OnSaleOrRentResponse();
+
+        switch (activity) {
+            case RENT:
+                actionable = new Rental();
+                actionable = setActionable(movie, request.getCustomerEmail(), actionable);
+                rentalsRepository.save((Rental) actionable);
+                break;
+            case SALE:
+                actionable = new Sale();
+                actionable = setActionable(movie, request.getCustomerEmail(), actionable);
+                saleRepository.save((Sale) actionable);
+                break;
         }
+
+        movie.updateStock(movieRepository);
+
+        response.setCustomerEmail(actionable.getEmail());
+        response.setPrice(activity == ActivityDefinition.RENT ?
+                actionable.getMovie().getRentalPrice()
+                : activity == ActivityDefinition.SALE ?
+                actionable.getMovie().getSalePrice() : 0);
+
+        response.setMovieId(actionable.getMovie().getMovieId());
         return response;
     }
 

@@ -1,4 +1,4 @@
-package com.ylluberes.moviestore;
+package com.ylluberes.moviestore.config;
 
 import org.modelmapper.Conditions;
 import org.modelmapper.ModelMapper;

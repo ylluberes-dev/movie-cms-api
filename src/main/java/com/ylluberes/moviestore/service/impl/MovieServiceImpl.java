@@ -38,9 +38,7 @@ public class MovieServiceImpl implements MovieService {
      */
     @Override
     public MovieResponse save(final AddOrUpdateMovieRequest request) {
-        request.setAvailable(request.getAvailable() == null ? true : request.getAvailable());
-        final Movie movie = modelMapper.map(request, Movie.class);
-        final Movie movieResponse = movieRepository.save(movie);
+        final Movie movieResponse = movieRepository.save(modelMapper.map(request, Movie.class));
         return modelMapper.map(movieResponse, MovieResponse.class);
     }
 
@@ -52,40 +50,21 @@ public class MovieServiceImpl implements MovieService {
      *                                This method is called when PUT request is executed.
      */
     @Override
-    public MovieResponse update(final int movieId,
-                                final AddOrUpdateMovieRequest request) throws MovieNotFoundException {
-        final Optional<Movie> optionalMovie = movieRepository.findById(movieId);
-        if (optionalMovie.isPresent()) {
-            request.setAvailable(request.getAvailable() == null ? true : request.getAvailable());
-            final Movie movie = modelMapper.map(request, Movie.class);
-            movie.setMovieId(movieId);
-            movieRepository.save(movie);
-            return modelMapper.map(movie, MovieResponse.class);
-        } else {
-            throw new MovieNotFoundException("There is no movie with id " + movieId);
-        }
+    public MovieResponse updateMovie (final int movieId,
+                                      final AddOrUpdateMovieRequest request) throws MovieNotFoundException {
+        return update(movieId,request);
     }
 
     /**
      * @param movieId id the of the movie to update.
      * @param request new movie details payload.
      * @return Updated Movie object when movie not found.
-     * @throws MovieNotFoundException
-     * This method is called when PATCH request is executed.
+     * @throws MovieNotFoundException This method is called when PATCH request is executed.
      */
     @Override
-    public MovieResponse update(final int movieId,
+    public MovieResponse patch (final int movieId,
                                 final PatchRequest request) throws MovieNotFoundException {
-        final Optional<Movie> optionalMovie = movieRepository.findById(movieId);
-        if (optionalMovie.isPresent()) {
-            final Movie movie = optionalMovie.get();
-            modelMapper.map(request,movie);
-            movie.setMovieId(movieId);
-            movieRepository.save(movie);
-            return modelMapper.map(movie, MovieResponse.class);
-        } else {
-            throw new MovieNotFoundException("There is no movie with id " + movieId);
-        }
+        return update(movieId,request);
     }
 
     /**
@@ -94,12 +73,8 @@ public class MovieServiceImpl implements MovieService {
      */
     @Override
     public void delete(final int movieId) throws MovieNotFoundException {
-        final Optional<Movie> optionalMovie = movieRepository.findById(movieId);
-        if (optionalMovie.isPresent()) {
-            movieRepository.delete(optionalMovie.get());
-        } else {
-            throw new MovieNotFoundException("There is no movie with id " + movieId);
-        }
+        movieRepository.delete(movieRepository.findById(movieId)
+                .orElseThrow(() -> new MovieNotFoundException("Movie not found")));
     }
 
     /**
@@ -120,19 +95,25 @@ public class MovieServiceImpl implements MovieService {
                                 ? Sort.by(field).descending() : null;
 
         final Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sortItem);
-
         Page<Movie> moviePage;
-        if (request.getTitle() != null) {
-            moviePage =
-                    request.isUnavailable() ?
-                            movieRepository.findAllByTitle(request.getTitle(), pageable) :
-                            movieRepository.findAllByTitleAndAvailable(request.getTitle(), pageable);
-        } else {
-            moviePage =
-                    request.isUnavailable() ?
-                            movieRepository.findAll(pageable) :
-                            movieRepository.findAllByAvailable(true, pageable);
-        }
+
+        Optional<String> optionalTitle = Optional.ofNullable(request.getTitle());
+        moviePage =
+                optionalTitle
+                        .map(title -> request.isUnavailable() ? movieRepository.findAllByTitle(title, pageable)
+                                : movieRepository.findAllByTitleAndAvailable(request.getTitle(), pageable))
+
+                        .orElse(request.isUnavailable() ? movieRepository.findAll(pageable)
+                                : movieRepository.findAllByAvailable(true, pageable));
         return moviePage;
+    }
+
+    private MovieResponse update (final int movieId, final Object request) throws MovieNotFoundException{
+        Movie movie = movieRepository
+                .findById(movieId).orElseThrow(() -> new MovieNotFoundException("Movie was not found"));
+        movie.setMovieId(movieId);
+        modelMapper.map(request, movie); //Merge
+        movieRepository.save(movie);
+        return modelMapper.map(movie, MovieResponse.class);
     }
 }

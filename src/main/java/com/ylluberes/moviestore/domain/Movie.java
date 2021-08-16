@@ -31,11 +31,11 @@ public class Movie {
     private int movieId;
     private String title;
     private String description;
-    private Integer stock;
-    private Double rentalPrice;
-    private Double salePrice;
-    private Boolean available;
-    private Double totalRevenue;
+    private int stock;
+    private double rentalPrice;
+    private double salePrice;
+    private boolean available = true;
+    private double totalRevenue;
 
     @OneToMany(mappedBy = "movie")
     @OnDelete(action = OnDeleteAction.CASCADE)

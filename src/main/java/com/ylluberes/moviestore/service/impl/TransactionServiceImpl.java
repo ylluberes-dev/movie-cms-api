@@ -51,7 +51,6 @@ public class TransactionServiceImpl implements TransactionService {
 
         //final OnTransactionResponse response = modelMapper.map(movie,OnTransactionResponse.class);
 
-        if (movie != null) {
             final OnTransactionResponse response = new OnTransactionResponse();
             final Set<String> customerMails = new HashSet<>();
             final Set<LocalDate> rentalsDate = new HashSet<>();
@@ -73,8 +72,5 @@ public class TransactionServiceImpl implements TransactionService {
             response.setCustomers(customerMails);
             response.setMovieId(movie.getMovieId());
             return response;
-        } else {
-            throw new MovieNotFoundException("There is no movie with id " + movieId);
-        }
     }
 }
