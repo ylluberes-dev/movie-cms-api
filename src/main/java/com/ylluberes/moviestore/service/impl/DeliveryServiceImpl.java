@@ -51,7 +51,7 @@ public class DeliveryServiceImpl implements DeliveryService {
                 movieRepository.findById(request.getMovieId())
                         .orElseThrow(() -> new MovieNotFoundException("Movie does not exists"));
 
-        if (movie.isAvailable() && movie.getStock() > 0)
+        if ((!movie.isAvailable() || movie.getStock() <= 0))
             throw new MovieNotAvailableException("The movie is not available");
 
         final OnSaleOrRentResponse response = new OnSaleOrRentResponse();
