@@ -5,7 +5,7 @@
 package com.ylluberes.moviestore.controller;
 
 import com.ylluberes.moviestore.controller.request.ActionableRequest;
-import com.ylluberes.moviestore.controller.response.OnActionableResponse;
+import com.ylluberes.moviestore.controller.response.OnSaleOrRentResponse;
 import com.ylluberes.moviestore.domain.type.ActivityDefinition;
 import com.ylluberes.moviestore.exceptions.MovieNotAvailableException;
 import com.ylluberes.moviestore.exceptions.MovieNotFoundException;
@@ -32,9 +32,9 @@ public class RentalsController {
      * @return OnActionableResponse
      */
     @PostMapping()
-    public ResponseEntity<OnActionableResponse> rent(@RequestBody final ActionableRequest request) {
+    public ResponseEntity<OnSaleOrRentResponse> rent(@RequestBody final ActionableRequest request) {
         try {
-            final OnActionableResponse response =
+            final OnSaleOrRentResponse response =
                       deliveryService.onDeliverFactory(request,
                                                        ActivityDefinition.RENT);
             return new ResponseEntity<>(response,

@@ -13,16 +13,22 @@ import com.ylluberes.moviestore.exceptions.InvalidDateRangeException;
 import com.ylluberes.moviestore.exceptions.MovieNotFoundException;
 import com.ylluberes.moviestore.service.TransactionService;
 import com.ylluberes.moviestore.util.Util;
+import lombok.AllArgsConstructor;
+import org.modelmapper.Condition;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.spi.MappingContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.*;
 
 @Service
+@AllArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
 
-    @Autowired
-    private MovieRepository movieRepository;
+    private final MovieRepository movieRepository;
+
+    private final ModelMapper modelMapper;
 
     /**
      * @param movieId id of the movie target.
@@ -39,9 +45,12 @@ public class TransactionServiceImpl implements TransactionService {
                                                  final LocalDate to)  throws MovieNotFoundException,
                                                                              InvalidDateRangeException {
         if(from.isAfter(to)) throw new InvalidDateRangeException("To parameter should be greater than From parameter");
-        final Optional<Movie> optionalMovie = movieRepository.findById(movieId);
-        if (optionalMovie.isPresent()) {
-            final Movie movie = optionalMovie.get();
+        final Movie movie = movieRepository
+                .findById(movieId)
+                .orElseThrow(() -> new MovieNotFoundException("Movie not found"));
+
+        //final OnTransactionResponse response = modelMapper.map(movie,OnTransactionResponse.class);
+
             final OnTransactionResponse response = new OnTransactionResponse();
             final Set<String> customerMails = new HashSet<>();
             final Set<LocalDate> rentalsDate = new HashSet<>();
@@ -63,9 +72,5 @@ public class TransactionServiceImpl implements TransactionService {
             response.setCustomers(customerMails);
             response.setMovieId(movie.getMovieId());
             return response;
-        } else {
-            throw new MovieNotFoundException("There is no movie with id " + movieId);
-        }
     }
-
 }

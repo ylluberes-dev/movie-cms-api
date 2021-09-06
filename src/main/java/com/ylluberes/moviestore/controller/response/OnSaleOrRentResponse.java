@@ -13,7 +13,7 @@ import lombok.Setter;
 @Setter
 @Getter
 @NoArgsConstructor
-public class OnActionableResponse {
+public class OnSaleOrRentResponse {
 
     private int movieId;
     private String customerEmail;

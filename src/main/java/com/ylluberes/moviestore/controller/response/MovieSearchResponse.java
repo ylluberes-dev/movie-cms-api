@@ -16,7 +16,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class OnMoviesResponse {
+public class MovieSearchResponse {
 
     private List<Movie> content;
     private int size;

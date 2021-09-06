@@ -7,6 +7,7 @@ package com.ylluberes.moviestore.controller.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
@@ -14,6 +15,7 @@ import javax.validation.constraints.NotNull;
 
 @AllArgsConstructor
 @Getter
+@Setter
 public class AddOrUpdateMovieRequest {
 
     @NotNull
@@ -29,5 +31,5 @@ public class AddOrUpdateMovieRequest {
     @NotNull
     @Min(value = 0)
     private final Double salePrice;
-    private final Boolean available;
+    private Boolean available;
 }
