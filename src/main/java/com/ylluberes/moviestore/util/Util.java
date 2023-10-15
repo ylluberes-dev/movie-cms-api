@@ -3,6 +3,7 @@
  * @version 1.0
  */
 package com.ylluberes.moviestore.util;
+import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.util.Random;
 
@@ -23,11 +24,11 @@ public final class Util {
     }
 
     public static double randomPrice() {
-        return Math.abs(new Random().nextDouble());
+        return Math.abs(new SecureRandom().nextDouble());
     }
 
     public static int randomStock() {
-        return Math.abs(new Random().nextInt());
+        return Math.abs(new SecureRandom().nextInt());
     }
 
 
